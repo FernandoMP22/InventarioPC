@@ -143,4 +143,4 @@ CREATE TABLE MOVIMIENTO_INVENTARIO (
         CHECK (cantidad > 0)
 );
 
--- Proyecto InventarioPC
+-- Proyecto de gestión de inventario de componentes de PC
