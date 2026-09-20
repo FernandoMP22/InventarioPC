@@ -143,3 +143,4 @@ CREATE TABLE MOVIMIENTO_INVENTARIO (
         CHECK (cantidad > 0)
 );
 
+-- Proyecto InventarioPC
