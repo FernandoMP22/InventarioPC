@@ -148,3 +148,4 @@ CREATE TABLE MOVIMIENTO_INVENTARIO (
 -- Cambio realizado en la rama desarrollo
 -- Cambio realizado directamente en GitHub
 -- Prueba para comprender git fetch
+-- Prueba de trabajo desde la laptop
