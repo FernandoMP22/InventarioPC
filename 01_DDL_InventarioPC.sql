@@ -23,6 +23,7 @@ CREATE TABLE CLIENTE (
     correo VARCHAR(150)
 );
 
+-- Tabla principal de productos del inventario
 CREATE TABLE PRODUCTO (
     id_producto INT IDENTITY(1,1) PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL,
