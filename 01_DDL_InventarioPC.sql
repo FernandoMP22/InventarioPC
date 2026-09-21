@@ -145,3 +145,4 @@ CREATE TABLE MOVIMIENTO_INVENTARIO (
 
 -- Proyecto de gestión de inventario de componentes de PC
 -- Cambio realizado en la rama desarrollo
+-- Cambio realizado directamente en GitHub
