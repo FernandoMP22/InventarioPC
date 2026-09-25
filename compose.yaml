@@ -5,7 +5,22 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_SERVER: host.docker.internal,1433
+      DB_SERVER: db,1433
       DB_DATABASE: InventarioPC
       DB_USER: inventariopc_user
       DB_PASSWORD: ${DB_PASSWORD}
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - "C:/Program Files/Microsoft SQL Server/MSSQL17.SQLEXPRESS/MSSQL/Backup:/backup:ro"
+
+
+volumes:
+  sqlserver_data:
