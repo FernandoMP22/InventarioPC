@@ -1,189 +1,118 @@
-# ==========================================
-# PROVEEDOR
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import Proveedor
+
 
 def obtener_proveedores():
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        consulta = select(Proveedor)
 
-        cursor.execute("SELECT * FROM PROVEEDOR")
+        resultado = session.execute(consulta)
 
-        proveedores = cursor.fetchall()
-
-        resultado = []
-
-        for proveedor in proveedores:
-            resultado.append({
-                "id_proveedor": proveedor[0],
-                "nombre": proveedor[1],
-                "telefono": proveedor[2],
-                "correo": proveedor[3],
-                "direccion": proveedor[4]
-            })
-
-        return resultado
-
-    except Exception:
-        return None
+        return resultado.scalars().all()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def obtener_proveedor(id_proveedor):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "SELECT * FROM PROVEEDOR WHERE id_proveedor = ?",
-            (id_proveedor,)
+        consulta = select(Proveedor).where(
+            Proveedor.id_proveedor == id_proveedor
         )
 
-        proveedor = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if proveedor is None:
-            return None
-
-        return {
-            "id_proveedor": proveedor[0],
-            "nombre": proveedor[1],
-            "telefono": proveedor[2],
-            "correo": proveedor[3],
-            "direccion": proveedor[4]
-        }
-
-    except Exception:
-        return None
+        return resultado.scalars().first()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def crear_proveedor(proveedor):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO PROVEEDOR
-                (nombre, telefono, correo, direccion)
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                proveedor.nombre,
-                proveedor.telefono,
-                proveedor.correo,
-                proveedor.direccion
-            )
+        nuevo_proveedor = Proveedor(
+            nombre=proveedor.nombre,
+            telefono=proveedor.telefono,
+            correo=proveedor.correo,
+            direccion=proveedor.direccion
         )
 
-        conexion.commit()
+        session.add(nuevo_proveedor)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def actualizar_proveedor(id_proveedor, proveedor):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            UPDATE PROVEEDOR
-            SET nombre = ?,
-                telefono = ?,
-                correo = ?,
-                direccion = ?
-            WHERE id_proveedor = ?
-            """,
-            (
-                proveedor.nombre,
-                proveedor.telefono,
-                proveedor.correo,
-                proveedor.direccion,
-                id_proveedor
-            )
+        consulta = select(Proveedor).where(
+            Proveedor.id_proveedor == id_proveedor
         )
 
-        if cursor.rowcount == 0:
+        proveedor_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if proveedor_db is None:
             return False
 
-        conexion.commit()
+        proveedor_db.nombre = proveedor.nombre
+        proveedor_db.telefono = proveedor.telefono
+        proveedor_db.correo = proveedor.correo
+        proveedor_db.direccion = proveedor.direccion
+
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def eliminar_proveedor(id_proveedor):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "DELETE FROM PROVEEDOR WHERE id_proveedor = ?",
-            (id_proveedor,)
+        consulta = select(Proveedor).where(
+            Proveedor.id_proveedor == id_proveedor
         )
 
-        if cursor.rowcount == 0:
+        proveedor = session.execute(
+            consulta
+        ).scalars().first()
+
+        if proveedor is None:
             return False
 
-        conexion.commit()
+        session.delete(proveedor)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()

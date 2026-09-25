@@ -1,189 +1,118 @@
-# ==========================================
-# CLIENTE
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import Cliente
+
 
 def obtener_clientes():
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        consulta = select(Cliente)
 
-        cursor.execute("SELECT * FROM CLIENTE")
+        resultado = session.execute(consulta)
 
-        clientes = cursor.fetchall()
-
-        resultado = []
-
-        for cliente in clientes:
-            resultado.append({
-                "id_cliente": cliente[0],
-                "nombre": cliente[1],
-                "apellido": cliente[2],
-                "telefono": cliente[3],
-                "correo": cliente[4]
-            })
-
-        return resultado
-
-    except Exception:
-        return None
+        return resultado.scalars().all()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def obtener_cliente(id_cliente):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "SELECT * FROM CLIENTE WHERE id_cliente = ?",
-            (id_cliente,)
+        consulta = select(Cliente).where(
+            Cliente.id_cliente == id_cliente
         )
 
-        cliente = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if cliente is None:
-            return None
-
-        return {
-            "id_cliente": cliente[0],
-            "nombre": cliente[1],
-            "apellido": cliente[2],
-            "telefono": cliente[3],
-            "correo": cliente[4]
-        }
-
-    except Exception:
-        return None
+        return resultado.scalars().first()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def crear_cliente(cliente):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO CLIENTE
-                (nombre, apellido, telefono, correo)
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                cliente.nombre,
-                cliente.apellido,
-                cliente.telefono,
-                cliente.correo
-            )
+        nuevo_cliente = Cliente(
+            nombre=cliente.nombre,
+            apellido=cliente.apellido,
+            telefono=cliente.telefono,
+            correo=cliente.correo
         )
 
-        conexion.commit()
+        session.add(nuevo_cliente)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def actualizar_cliente(id_cliente, cliente):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            UPDATE CLIENTE
-            SET nombre = ?,
-                apellido = ?,
-                telefono = ?,
-                correo = ?
-            WHERE id_cliente = ?
-            """,
-            (
-                cliente.nombre,
-                cliente.apellido,
-                cliente.telefono,
-                cliente.correo,
-                id_cliente
-            )
+        consulta = select(Cliente).where(
+            Cliente.id_cliente == id_cliente
         )
 
-        if cursor.rowcount == 0:
+        cliente_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if cliente_db is None:
             return False
 
-        conexion.commit()
+        cliente_db.nombre = cliente.nombre
+        cliente_db.apellido = cliente.apellido
+        cliente_db.telefono = cliente.telefono
+        cliente_db.correo = cliente.correo
+
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def eliminar_cliente(id_cliente):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "DELETE FROM CLIENTE WHERE id_cliente = ?",
-            (id_cliente,)
+        consulta = select(Cliente).where(
+            Cliente.id_cliente == id_cliente
         )
 
-        if cursor.rowcount == 0:
+        cliente = session.execute(
+            consulta
+        ).scalars().first()
+
+        if cliente is None:
             return False
 
-        conexion.commit()
+        session.delete(cliente)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()

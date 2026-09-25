@@ -1,169 +1,128 @@
-# ==========================================
-# PRODUCTO_PROVEEDOR
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import ProductoProveedor
+
 
 def obtener_productos_proveedores():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute("SELECT * FROM PRODUCTO_PROVEEDOR")
+        consulta = select(ProductoProveedor)
 
-        productos_proveedores = cursor.fetchall()
+        resultado = session.execute(consulta)
 
-        productos_proveedores_dict = []
-
-        for producto_proveedor in productos_proveedores:
-            producto_proveedor_dict = {
-                "id_producto": producto_proveedor[0],
-                "id_proveedor": producto_proveedor[1],
-                "costo_proveedor": producto_proveedor[2],
-                "codigo_proveedor": producto_proveedor[3]
-            }
-
-            productos_proveedores_dict.append(producto_proveedor_dict)
-
-        return productos_proveedores_dict
-
-    except Exception as error:
-        print("Error al obtener relaciones producto-proveedor:", error)
-        return False
+        return resultado.scalars().all()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def obtener_producto_proveedor(id_producto, id_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            SELECT * FROM PRODUCTO_PROVEEDOR
-            WHERE id_producto = ? AND id_proveedor = ?
-            """,
-            (id_producto, id_proveedor)
+        consulta = select(ProductoProveedor).where(
+            ProductoProveedor.id_producto == id_producto,
+            ProductoProveedor.id_proveedor == id_proveedor
         )
 
-        producto_proveedor = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if producto_proveedor:
-            producto_proveedor_dict = {
-                "id_producto": producto_proveedor[0],
-                "id_proveedor": producto_proveedor[1],
-                "costo_proveedor": producto_proveedor[2],
-                "codigo_proveedor": producto_proveedor[3]
-            }
-
-            return producto_proveedor_dict
-
-        return None
-
-    except Exception as error:
-        print("Error al obtener relación producto-proveedor:", error)
-        return False
+        return resultado.scalars().first()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def crear_producto_proveedor(producto_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO PRODUCTO_PROVEEDOR
-            (id_producto, id_proveedor, costo_proveedor, codigo_proveedor)
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                producto_proveedor.id_producto,
-                producto_proveedor.id_proveedor,
-                producto_proveedor.costo_proveedor,
-                producto_proveedor.codigo_proveedor
-            )
+        nueva_relacion = ProductoProveedor(
+            id_producto=producto_proveedor.id_producto,
+            id_proveedor=producto_proveedor.id_proveedor,
+            costo_proveedor=producto_proveedor.costo_proveedor,
+            codigo_proveedor=producto_proveedor.codigo_proveedor
         )
 
-        conexion.commit()
+        session.add(nueva_relacion)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al crear relación producto-proveedor:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
-def actualizar_producto_proveedor(id_producto, id_proveedor, producto_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+def actualizar_producto_proveedor(
+    id_producto,
+    id_proveedor,
+    producto_proveedor
+):
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            UPDATE PRODUCTO_PROVEEDOR
-            SET costo_proveedor = ?,
-                codigo_proveedor = ?
-            WHERE id_producto = ? AND id_proveedor = ?
-            """,
-            (
-                producto_proveedor.costo_proveedor,
-                producto_proveedor.codigo_proveedor,
-                id_producto,
-                id_proveedor
-            )
+        consulta = select(ProductoProveedor).where(
+            ProductoProveedor.id_producto == id_producto,
+            ProductoProveedor.id_proveedor == id_proveedor
         )
 
-        if cursor.rowcount == 0:
+        producto_proveedor_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if producto_proveedor_db is None:
             return False
 
-        conexion.commit()
+        producto_proveedor_db.costo_proveedor = (
+            producto_proveedor.costo_proveedor
+        )
+
+        producto_proveedor_db.codigo_proveedor = (
+            producto_proveedor.codigo_proveedor
+        )
+
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al actualizar relación producto-proveedor:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def eliminar_producto_proveedor(id_producto, id_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            DELETE FROM PRODUCTO_PROVEEDOR
-            WHERE id_producto = ? AND id_proveedor = ?
-            """,
-            (id_producto, id_proveedor)
+        consulta = select(ProductoProveedor).where(
+            ProductoProveedor.id_producto == id_producto,
+            ProductoProveedor.id_proveedor == id_proveedor
         )
 
-        if cursor.rowcount == 0:
+        producto_proveedor = session.execute(
+            consulta
+        ).scalars().first()
+
+        if producto_proveedor is None:
             return False
 
-        conexion.commit()
+        session.delete(producto_proveedor)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al eliminar relación producto-proveedor:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()

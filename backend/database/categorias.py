@@ -1,178 +1,114 @@
-# ==========================================
-# CATEGORIA
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import Categoria
+
 
 def obtener_categorias():
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        consulta = select(Categoria)
 
-        cursor.execute("SELECT * FROM CATEGORIA")
+        resultado = session.execute(consulta)
 
-        categorias = cursor.fetchall()
-
-        resultado = []
-
-        for categoria in categorias:
-            resultado.append({
-                "id_categoria": categoria[0],
-                "nombre": categoria[1],
-                "descripcion": categoria[2]
-            })
-
-        return resultado
-
-    except Exception:
-        return None
+        return resultado.scalars().all()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def obtener_categoria(id_categoria):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "SELECT * FROM CATEGORIA WHERE id_categoria = ?",
-            (id_categoria,)
+        consulta = select(Categoria).where(
+            Categoria.id_categoria == id_categoria
         )
 
-        categoria = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if categoria is None:
-            return None
-
-        return {
-            "id_categoria": categoria[0],
-            "nombre": categoria[1],
-            "descripcion": categoria[2]
-        }
-
-    except Exception:
-        return None
+        return resultado.scalars().first()
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def crear_categoria(categoria):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO CATEGORIA (nombre, descripcion)
-            VALUES (?, ?)
-            """,
-            (
-                categoria.nombre,
-                categoria.descripcion
-            )
+        nueva_categoria = Categoria(
+            nombre=categoria.nombre,
+            descripcion=categoria.descripcion
         )
 
-        conexion.commit()
+        session.add(nueva_categoria)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def actualizar_categoria(id_categoria, categoria):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            UPDATE CATEGORIA
-            SET nombre = ?,
-                descripcion = ?
-            WHERE id_categoria = ?
-            """,
-            (
-                categoria.nombre,
-                categoria.descripcion,
-                id_categoria
-            )
+        consulta = select(Categoria).where(
+            Categoria.id_categoria == id_categoria
         )
 
-        if cursor.rowcount == 0:
+        categoria_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if categoria_db is None:
             return False
 
-        conexion.commit()
+        categoria_db.nombre = categoria.nombre
+        categoria_db.descripcion = categoria.descripcion
+
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def eliminar_categoria(id_categoria):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "DELETE FROM CATEGORIA WHERE id_categoria = ?",
-            (id_categoria,)
+        consulta = select(Categoria).where(
+            Categoria.id_categoria == id_categoria
         )
 
-        if cursor.rowcount == 0:
+        categoria = session.execute(
+            consulta
+        ).scalars().first()
+
+        if categoria is None:
             return False
 
-        conexion.commit()
+        session.delete(categoria)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()

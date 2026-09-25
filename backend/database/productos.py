@@ -1,210 +1,126 @@
-# ==========================================
-# PRODUCTO
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import Producto
+
 
 def obtener_productos():
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
+        consulta = select(Producto)
 
-        cursor.execute("SELECT * FROM PRODUCTO")
+        resultado = session.execute(consulta)
 
-        productos = cursor.fetchall()
+        productos = resultado.scalars().all()
 
-        resultado = []
-
-        for producto in productos:
-            resultado.append({
-                "id_producto": producto[0],
-                "nombre": producto[1],
-                "marca": producto[2],
-                "modelo": producto[3],
-                "precio_compra": producto[4],
-                "precio_venta": producto[5],
-                "stock_actual": producto[6],
-                "stock_minimo": producto[7],
-                "id_categoria": producto[8]
-            })
-
-        return resultado
-
-    except Exception:
-        return None
+        return productos
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def obtener_producto(id_producto):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "SELECT * FROM PRODUCTO WHERE id_producto = ?",
-            (id_producto,)
+        consulta = select(Producto).where(
+            Producto.id_producto == id_producto
         )
 
-        producto = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if producto is None:
-            return None
+        producto = resultado.scalars().first()
 
-        return {
-            "id_producto": producto[0],
-            "nombre": producto[1],
-            "marca": producto[2],
-            "modelo": producto[3],
-            "precio_compra": producto[4],
-            "precio_venta": producto[5],
-            "stock_actual": producto[6],
-            "stock_minimo": producto[7],
-            "id_categoria": producto[8]
-        }
-
-    except Exception:
-        return None
+        return producto
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def crear_producto(producto):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO PRODUCTO
-                (nombre, marca, modelo, precio_compra, precio_venta,
-                 stock_actual, stock_minimo, id_categoria)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                producto.nombre,
-                producto.marca,
-                producto.modelo,
-                producto.precio_compra,
-                producto.precio_venta,
-                producto.stock_actual,
-                producto.stock_minimo,
-                producto.id_categoria
-            )
+        nuevo_producto = Producto(
+            nombre=producto.nombre,
+            marca=producto.marca,
+            modelo=producto.modelo,
+            precio_compra=producto.precio_compra,
+            precio_venta=producto.precio_venta,
+            stock_actual=producto.stock_actual,
+            stock_minimo=producto.stock_minimo,
+            id_categoria=producto.id_categoria
         )
 
-        conexion.commit()
+        session.add(nuevo_producto)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def actualizar_producto(id_producto, producto):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            """
-            UPDATE PRODUCTO
-            SET nombre = ?,
-                marca = ?,
-                modelo = ?,
-                precio_compra = ?,
-                precio_venta = ?,
-                stock_actual = ?,
-                stock_minimo = ?,
-                id_categoria = ?
-            WHERE id_producto = ?
-            """,
-            (
-                producto.nombre,
-                producto.marca,
-                producto.modelo,
-                producto.precio_compra,
-                producto.precio_venta,
-                producto.stock_actual,
-                producto.stock_minimo,
-                producto.id_categoria,
-                id_producto
-            )
+        consulta = select(Producto).where(
+            Producto.id_producto == id_producto
         )
 
-        if cursor.rowcount == 0:
+        producto_db = session.execute(consulta).scalars().first()
+
+        if producto_db is None:
             return False
 
-        conexion.commit()
+        producto_db.nombre = producto.nombre
+        producto_db.marca = producto.marca
+        producto_db.modelo = producto.modelo
+        producto_db.precio_compra = producto.precio_compra
+        producto_db.precio_venta = producto.precio_venta
+        producto_db.stock_actual = producto.stock_actual
+        producto_db.stock_minimo = producto.stock_minimo
+        producto_db.id_categoria = producto.id_categoria
+
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()
 
 
 def eliminar_producto(id_producto):
-    conexion = None
-    cursor = None
+    session = SessionLocal()
 
     try:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-
-        cursor.execute(
-            "DELETE FROM PRODUCTO WHERE id_producto = ?",
-            (id_producto,)
+        consulta = select(Producto).where(
+            Producto.id_producto == id_producto
         )
 
-        if cursor.rowcount == 0:
+        producto = session.execute(consulta).scalars().first()
+
+        if producto is None:
             return False
 
-        conexion.commit()
+        session.delete(producto)
+        session.commit()
 
         return True
 
     except Exception:
+        session.rollback()
         return False
 
     finally:
-        if cursor:
-            cursor.close()
-
-        if conexion:
-            conexion.close()
+        session.close()

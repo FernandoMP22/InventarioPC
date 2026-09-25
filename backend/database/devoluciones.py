@@ -1,173 +1,126 @@
-# ==========================================
-# DEVOLUCION
-# ==========================================
+from datetime import date
 
-from backend.database.conexion import obtener_conexion
+from sqlalchemy import select
+
+from backend.database.session import SessionLocal
+from backend.models import Devolucion
+
 
 def obtener_devoluciones():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute("SELECT * FROM DEVOLUCION")
+        consulta = select(Devolucion)
 
-        devoluciones = cursor.fetchall()
+        resultado = session.execute(consulta)
 
-        devoluciones_dict = []
-
-        for devolucion in devoluciones:
-            devolucion_dict = {
-                "id_devolucion": devolucion[0],
-                "id_detalle": devolucion[1],
-                "fecha_devolucion": devolucion[2],
-                "cantidad": devolucion[3],
-                "motivo": devolucion[4],
-                "estado": devolucion[5]
-            }
-
-            devoluciones_dict.append(devolucion_dict)
-
-        return devoluciones_dict
-
-    except Exception as error:
-        print("Error al obtener devoluciones:", error)
-        return False
+        return resultado.scalars().all()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def obtener_devolucion(id_devolucion):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "SELECT * FROM DEVOLUCION WHERE id_devolucion = ?",
-            (id_devolucion,)
+        consulta = select(Devolucion).where(
+            Devolucion.id_devolucion == id_devolucion
         )
 
-        devolucion = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if devolucion:
-            devolucion_dict = {
-                "id_devolucion": devolucion[0],
-                "id_detalle": devolucion[1],
-                "fecha_devolucion": devolucion[2],
-                "cantidad": devolucion[3],
-                "motivo": devolucion[4],
-                "estado": devolucion[5]
-            }
-
-            return devolucion_dict
-
-        return None
-
-    except Exception as error:
-        print("Error al obtener devolucion:", error)
-        return False
+        return resultado.scalars().first()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def crear_devolucion(devolucion):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO DEVOLUCION
-            (id_detalle, fecha_devolucion, cantidad, motivo, estado)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                devolucion.id_detalle,
-                devolucion.fecha_devolucion,
-                devolucion.cantidad,
-                devolucion.motivo,
-                devolucion.estado
-            )
+        nueva_devolucion = Devolucion(
+            id_detalle=devolucion.id_detalle,
+            fecha_devolucion=date.fromisoformat(
+                devolucion.fecha_devolucion
+            ),
+            cantidad=devolucion.cantidad,
+            motivo=devolucion.motivo,
+            estado=devolucion.estado
         )
 
-        conexion.commit()
+        session.add(nueva_devolucion)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al crear devolucion:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def actualizar_devolucion(id_devolucion, devolucion):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            UPDATE DEVOLUCION
-            SET id_detalle = ?,
-                fecha_devolucion = ?,
-                cantidad = ?,
-                motivo = ?,
-                estado = ?
-            WHERE id_devolucion = ?
-            """,
-            (
-                devolucion.id_detalle,
-                devolucion.fecha_devolucion,
-                devolucion.cantidad,
-                devolucion.motivo,
-                devolucion.estado,
-                id_devolucion
-            )
+        consulta = select(Devolucion).where(
+            Devolucion.id_devolucion == id_devolucion
         )
 
-        if cursor.rowcount == 0:
+        devolucion_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if devolucion_db is None:
             return False
 
-        conexion.commit()
+        devolucion_db.id_detalle = devolucion.id_detalle
+        devolucion_db.fecha_devolucion = date.fromisoformat(
+            devolucion.fecha_devolucion
+        )
+        devolucion_db.cantidad = devolucion.cantidad
+        devolucion_db.motivo = devolucion.motivo
+        devolucion_db.estado = devolucion.estado
+
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al actualizar devolucion:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def eliminar_devolucion(id_devolucion):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "DELETE FROM DEVOLUCION WHERE id_devolucion = ?",
-            (id_devolucion,)
+        consulta = select(Devolucion).where(
+            Devolucion.id_devolucion == id_devolucion
         )
 
-        if cursor.rowcount == 0:
+        devolucion = session.execute(
+            consulta
+        ).scalars().first()
+
+        if devolucion is None:
             return False
 
-        conexion.commit()
+        session.delete(devolucion)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al eliminar devolucion:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()

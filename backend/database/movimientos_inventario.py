@@ -1,179 +1,127 @@
-# ==========================================
-# MOVIMIENTO_INVENTARIO
-# ==========================================
+from datetime import date
 
-from backend.database.conexion import obtener_conexion
+from sqlalchemy import select
+
+from backend.database.session import SessionLocal
+from backend.models import MovimientoInventario
+
 
 def obtener_movimientos_inventario():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute("SELECT * FROM MOVIMIENTO_INVENTARIO")
+        consulta = select(MovimientoInventario)
 
-        movimientos = cursor.fetchall()
+        resultado = session.execute(consulta)
 
-        movimientos_dict = []
-
-        for movimiento in movimientos:
-            movimiento_dict = {
-                "id_movimiento": movimiento[0],
-                "id_producto": movimiento[1],
-                "tipo_movimiento": movimiento[2],
-                "cantidad": movimiento[3],
-                "fecha": movimiento[4],
-                "motivo": movimiento[5]
-            }
-
-            movimientos_dict.append(movimiento_dict)
-
-        return movimientos_dict
-
-    except Exception as error:
-        print("Error al obtener movimientos de inventario:", error)
-        return False
+        return resultado.scalars().all()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def obtener_movimiento_inventario(id_movimiento):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            SELECT * FROM MOVIMIENTO_INVENTARIO
-            WHERE id_movimiento = ?
-            """,
-            (id_movimiento,)
+        consulta = select(MovimientoInventario).where(
+            MovimientoInventario.id_movimiento == id_movimiento
         )
 
-        movimiento = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if movimiento:
-            movimiento_dict = {
-                "id_movimiento": movimiento[0],
-                "id_producto": movimiento[1],
-                "tipo_movimiento": movimiento[2],
-                "cantidad": movimiento[3],
-                "fecha": movimiento[4],
-                "motivo": movimiento[5]
-            }
-
-            return movimiento_dict
-
-        return None
-
-    except Exception as error:
-        print("Error al obtener movimiento de inventario:", error)
-        return False
+        return resultado.scalars().first()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def crear_movimiento_inventario(movimiento):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO MOVIMIENTO_INVENTARIO
-            (id_producto, tipo_movimiento, cantidad, fecha, motivo)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                movimiento.id_producto,
-                movimiento.tipo_movimiento,
-                movimiento.cantidad,
-                movimiento.fecha,
-                movimiento.motivo
-            )
+        nuevo_movimiento = MovimientoInventario(
+            id_producto=movimiento.id_producto,
+            tipo_movimiento=movimiento.tipo_movimiento,
+            cantidad=movimiento.cantidad,
+            fecha=date.fromisoformat(movimiento.fecha),
+            motivo=movimiento.motivo
         )
 
-        conexion.commit()
+        session.add(nuevo_movimiento)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al crear movimiento de inventario:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
-def actualizar_movimiento_inventario(id_movimiento, movimiento):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+def actualizar_movimiento_inventario(
+    id_movimiento,
+    movimiento
+):
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            UPDATE MOVIMIENTO_INVENTARIO
-            SET id_producto = ?,
-                tipo_movimiento = ?,
-                cantidad = ?,
-                fecha = ?,
-                motivo = ?
-            WHERE id_movimiento = ?
-            """,
-            (
-                movimiento.id_producto,
-                movimiento.tipo_movimiento,
-                movimiento.cantidad,
-                movimiento.fecha,
-                movimiento.motivo,
-                id_movimiento
-            )
+        consulta = select(MovimientoInventario).where(
+            MovimientoInventario.id_movimiento == id_movimiento
         )
 
-        if cursor.rowcount == 0:
+        movimiento_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if movimiento_db is None:
             return False
 
-        conexion.commit()
+        movimiento_db.id_producto = movimiento.id_producto
+        movimiento_db.tipo_movimiento = movimiento.tipo_movimiento
+        movimiento_db.cantidad = movimiento.cantidad
+        movimiento_db.fecha = date.fromisoformat(
+            movimiento.fecha
+        )
+        movimiento_db.motivo = movimiento.motivo
+
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al actualizar movimiento de inventario:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def eliminar_movimiento_inventario(id_movimiento):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            DELETE FROM MOVIMIENTO_INVENTARIO
-            WHERE id_movimiento = ?
-            """,
-            (id_movimiento,)
+        consulta = select(MovimientoInventario).where(
+            MovimientoInventario.id_movimiento == id_movimiento
         )
 
-        if cursor.rowcount == 0:
+        movimiento = session.execute(
+            consulta
+        ).scalars().first()
+
+        if movimiento is None:
             return False
 
-        conexion.commit()
+        session.delete(movimiento)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al eliminar movimiento de inventario:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()

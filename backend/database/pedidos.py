@@ -1,178 +1,126 @@
-# ==========================================
-# PEDIDO
-# ==========================================
+from datetime import date
 
-from backend.database.conexion import obtener_conexion
+from sqlalchemy import select
+
+from backend.database.session import SessionLocal
+from backend.models import Pedido
+
 
 def obtener_pedidos():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute("SELECT * FROM PEDIDO")
+        consulta = select(Pedido)
 
-        pedidos = cursor.fetchall()
+        resultado = session.execute(consulta)
 
-        pedidos_dict = []
-
-        for pedido in pedidos:
-            pedido_dict = {
-                "id_pedido": pedido[0],
-                "id_cliente": pedido[1],
-                "fecha_pedido": pedido[2],
-                "tipo_envio": pedido[3],
-                "tipo_entrega": pedido[4],
-                "estado": pedido[5],
-                "total": pedido[6]
-            }
-
-            pedidos_dict.append(pedido_dict)
-
-        return pedidos_dict
-
-    except Exception as error:
-        print("Error al obtener pedidos:", error)
-        return False
+        return resultado.scalars().all()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def obtener_pedido(id_pedido):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "SELECT * FROM PEDIDO WHERE id_pedido = ?",
-            (id_pedido,)
+        consulta = select(Pedido).where(
+            Pedido.id_pedido == id_pedido
         )
 
-        pedido = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if pedido:
-            pedido_dict = {
-                "id_pedido": pedido[0],
-                "id_cliente": pedido[1],
-                "fecha_pedido": pedido[2],
-                "tipo_envio": pedido[3],
-                "tipo_entrega": pedido[4],
-                "estado": pedido[5],
-                "total": pedido[6]
-            }
-
-            return pedido_dict
-
-        return None
-
-    except Exception as error:
-        print("Error al obtener pedido:", error)
-        return False
+        return resultado.scalars().first()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def crear_pedido(pedido):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO PEDIDO
-            (id_cliente, fecha_pedido, tipo_envio, tipo_entrega, estado, total)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                pedido.id_cliente,
-                pedido.fecha_pedido,
-                pedido.tipo_envio,
-                pedido.tipo_entrega,
-                pedido.estado,
-                pedido.total
-            )
+        nuevo_pedido = Pedido(
+            id_cliente=pedido.id_cliente,
+            fecha_pedido=date.fromisoformat(pedido.fecha_pedido),
+            tipo_envio=pedido.tipo_envio,
+            tipo_entrega=pedido.tipo_entrega,
+            estado=pedido.estado,
+            total=pedido.total
         )
 
-        conexion.commit()
+        session.add(nuevo_pedido)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al crear pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def actualizar_pedido(id_pedido, pedido):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            UPDATE PEDIDO
-            SET id_cliente = ?,
-                fecha_pedido = ?,
-                tipo_envio = ?,
-                tipo_entrega = ?,
-                estado = ?,
-                total = ?
-            WHERE id_pedido = ?
-            """,
-            (
-                pedido.id_cliente,
-                pedido.fecha_pedido,
-                pedido.tipo_envio,
-                pedido.tipo_entrega,
-                pedido.estado,
-                pedido.total,
-                id_pedido
-            )
+        consulta = select(Pedido).where(
+            Pedido.id_pedido == id_pedido
         )
 
-        if cursor.rowcount == 0:
+        pedido_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if pedido_db is None:
             return False
 
-        conexion.commit()
+        pedido_db.id_cliente = pedido.id_cliente
+        pedido_db.fecha_pedido = date.fromisoformat(
+            pedido.fecha_pedido
+        )
+        pedido_db.tipo_envio = pedido.tipo_envio
+        pedido_db.tipo_entrega = pedido.tipo_entrega
+        pedido_db.estado = pedido.estado
+        pedido_db.total = pedido.total
+
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al actualizar pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def eliminar_pedido(id_pedido):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "DELETE FROM PEDIDO WHERE id_pedido = ?",
-            (id_pedido,)
+        consulta = select(Pedido).where(
+            Pedido.id_pedido == id_pedido
         )
 
-        if cursor.rowcount == 0:
+        pedido = session.execute(
+            consulta
+        ).scalars().first()
+
+        if pedido is None:
             return False
 
-        conexion.commit()
+        session.delete(pedido)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al eliminar pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()

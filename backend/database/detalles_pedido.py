@@ -1,173 +1,120 @@
-# ==========================================
-# DETALLE_PEDIDO
-# ==========================================
+from sqlalchemy import select
 
-from backend.database.conexion import obtener_conexion
+from backend.database.session import SessionLocal
+from backend.models import DetallePedido
+
 
 def obtener_detalles_pedido():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute("SELECT * FROM DETALLE_PEDIDO")
+        consulta = select(DetallePedido)
 
-        detalles = cursor.fetchall()
+        resultado = session.execute(consulta)
 
-        detalles_dict = []
-
-        for detalle in detalles:
-            detalle_dict = {
-                "id_detalle": detalle[0],
-                "id_pedido": detalle[1],
-                "id_producto": detalle[2],
-                "cantidad": detalle[3],
-                "precio_unitario": detalle[4],
-                "subtotal": detalle[5]
-            }
-
-            detalles_dict.append(detalle_dict)
-
-        return detalles_dict
-
-    except Exception as error:
-        print("Error al obtener detalles de pedido:", error)
-        return False
+        return resultado.scalars().all()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def obtener_detalle_pedido(id_detalle):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "SELECT * FROM DETALLE_PEDIDO WHERE id_detalle = ?",
-            (id_detalle,)
+        consulta = select(DetallePedido).where(
+            DetallePedido.id_detalle == id_detalle
         )
 
-        detalle = cursor.fetchone()
+        resultado = session.execute(consulta)
 
-        if detalle:
-            detalle_dict = {
-                "id_detalle": detalle[0],
-                "id_pedido": detalle[1],
-                "id_producto": detalle[2],
-                "cantidad": detalle[3],
-                "precio_unitario": detalle[4],
-                "subtotal": detalle[5]
-            }
-
-            return detalle_dict
-
-        return None
-
-    except Exception as error:
-        print("Error al obtener detalle de pedido:", error)
-        return False
+        return resultado.scalars().first()
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def crear_detalle_pedido(detalle):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO DETALLE_PEDIDO
-            (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                detalle.id_pedido,
-                detalle.id_producto,
-                detalle.cantidad,
-                detalle.precio_unitario,
-                detalle.subtotal
-            )
+        nuevo_detalle = DetallePedido(
+            id_pedido=detalle.id_pedido,
+            id_producto=detalle.id_producto,
+            cantidad=detalle.cantidad,
+            precio_unitario=detalle.precio_unitario,
+            subtotal=detalle.subtotal
         )
 
-        conexion.commit()
+        session.add(nuevo_detalle)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al crear detalle de pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def actualizar_detalle_pedido(id_detalle, detalle):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            """
-            UPDATE DETALLE_PEDIDO
-            SET id_pedido = ?,
-                id_producto = ?,
-                cantidad = ?,
-                precio_unitario = ?,
-                subtotal = ?
-            WHERE id_detalle = ?
-            """,
-            (
-                detalle.id_pedido,
-                detalle.id_producto,
-                detalle.cantidad,
-                detalle.precio_unitario,
-                detalle.subtotal,
-                id_detalle
-            )
+        consulta = select(DetallePedido).where(
+            DetallePedido.id_detalle == id_detalle
         )
 
-        if cursor.rowcount == 0:
+        detalle_db = session.execute(
+            consulta
+        ).scalars().first()
+
+        if detalle_db is None:
             return False
 
-        conexion.commit()
+        detalle_db.id_pedido = detalle.id_pedido
+        detalle_db.id_producto = detalle.id_producto
+        detalle_db.cantidad = detalle.cantidad
+        detalle_db.precio_unitario = detalle.precio_unitario
+        detalle_db.subtotal = detalle.subtotal
+
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al actualizar detalle de pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
 
 
 def eliminar_detalle_pedido(id_detalle):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
+    session = SessionLocal()
 
     try:
-        cursor.execute(
-            "DELETE FROM DETALLE_PEDIDO WHERE id_detalle = ?",
-            (id_detalle,)
+        consulta = select(DetallePedido).where(
+            DetallePedido.id_detalle == id_detalle
         )
 
-        if cursor.rowcount == 0:
+        detalle = session.execute(
+            consulta
+        ).scalars().first()
+
+        if detalle is None:
             return False
 
-        conexion.commit()
+        session.delete(detalle)
+        session.commit()
 
         return True
 
-    except Exception as error:
-        print("Error al eliminar detalle de pedido:", error)
+    except Exception:
+        session.rollback()
         return False
 
     finally:
-        cursor.close()
-        conexion.close()
+        session.close()
