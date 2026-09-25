@@ -2,8 +2,7 @@
 # DETALLE_PEDIDO
 # ==========================================
 
-from database.conexion import obtener_conexion
-
+from backend.database.conexion import obtener_conexion
 
 def obtener_detalles_pedido():
     conexion = obtener_conexion()

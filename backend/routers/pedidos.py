@@ -5,11 +5,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database.pedidos import obtener_pedidos as obtener_pedidos_db
-from database.pedidos import obtener_pedido as obtener_pedido_db
-from database.pedidos import crear_pedido as crear_pedido_db
-from database.pedidos import actualizar_pedido as actualizar_pedido_db
-from database.pedidos import eliminar_pedido as eliminar_pedido_db
+from backend.database.pedidos import obtener_pedidos as obtener_pedidos_db
+from backend.database.pedidos import obtener_pedido as obtener_pedido_db
+from backend.database.pedidos import crear_pedido as crear_pedido_db
+from backend.database.pedidos import actualizar_pedido as actualizar_pedido_db
+from backend.database.pedidos import eliminar_pedido as eliminar_pedido_db
 
 
 router = APIRouter()

@@ -1,0 +1,11 @@
+services:
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_SERVER: host.docker.internal,1433
+      DB_DATABASE: InventarioPC
+      DB_USER: inventariopc_user
+      DB_PASSWORD: ${DB_PASSWORD}

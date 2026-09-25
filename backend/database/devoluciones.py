@@ -2,8 +2,7 @@
 # DEVOLUCION
 # ==========================================
 
-from database.conexion import obtener_conexion
-
+from backend.database.conexion import obtener_conexion
 
 def obtener_devoluciones():
     conexion = obtener_conexion()

@@ -2,8 +2,7 @@
 # PRODUCTO_PROVEEDOR
 # ==========================================
 
-from database.conexion import obtener_conexion
-
+from backend.database.conexion import obtener_conexion
 
 def obtener_productos_proveedores():
     conexion = obtener_conexion()

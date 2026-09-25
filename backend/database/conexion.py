@@ -10,7 +10,8 @@ def obtener_conexion():
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER={os.getenv('DB_SERVER')};"
         f"DATABASE={os.getenv('DB_DATABASE')};"
-        "Trusted_Connection=yes;"
+        f"UID={os.getenv('DB_USER')};"
+        f"PWD={os.getenv('DB_PASSWORD')};"
         "TrustServerCertificate=yes;"
     )
 

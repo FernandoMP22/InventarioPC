@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 
-from routers import productos
-from routers import categorias
-from routers import proveedores
-from routers import clientes
-from routers import productos_proveedores
-from routers import pedidos
-from routers import detalles_pedido
-from routers import movimientos_inventario
-from routers import devoluciones
+from backend.routers import productos
+from backend.routers import categorias
+from backend.routers import proveedores
+from backend.routers import clientes
+from backend.routers import productos_proveedores
+from backend.routers import pedidos
+from backend.routers import detalles_pedido
+from backend.routers import movimientos_inventario
+from backend.routers import devoluciones
 
 
 app = FastAPI()

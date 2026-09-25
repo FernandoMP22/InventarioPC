@@ -2,8 +2,7 @@
 # MOVIMIENTO_INVENTARIO
 # ==========================================
 
-from database.conexion import obtener_conexion
-
+from backend.database.conexion import obtener_conexion
 
 def obtener_movimientos_inventario():
     conexion = obtener_conexion()

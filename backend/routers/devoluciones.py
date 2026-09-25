@@ -5,11 +5,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database.devoluciones import obtener_devoluciones as obtener_devoluciones_db
-from database.devoluciones import obtener_devolucion as obtener_devolucion_db
-from database.devoluciones import crear_devolucion as crear_devolucion_db
-from database.devoluciones import actualizar_devolucion as actualizar_devolucion_db
-from database.devoluciones import eliminar_devolucion as eliminar_devolucion_db
+from backend.database.devoluciones import obtener_devoluciones as obtener_devoluciones_db
+from backend.database.devoluciones import obtener_devolucion as obtener_devolucion_db
+from backend.database.devoluciones import crear_devolucion as crear_devolucion_db
+from backend.database.devoluciones import actualizar_devolucion as actualizar_devolucion_db
+from backend.database.devoluciones import eliminar_devolucion as eliminar_devolucion_db
 
 
 router = APIRouter()

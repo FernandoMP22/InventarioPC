@@ -5,11 +5,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database.categorias import obtener_categorias as obtener_categorias_db
-from database.categorias import obtener_categoria as obtener_categoria_db
-from database.categorias import crear_categoria as crear_categoria_db
-from database.categorias import actualizar_categoria as actualizar_categoria_db
-from database.categorias import eliminar_categoria as eliminar_categoria_db
+from backend.database.categorias import obtener_categorias as obtener_categorias_db
+from backend.database.categorias import obtener_categoria as obtener_categoria_db
+from backend.database.categorias import crear_categoria as crear_categoria_db
+from backend.database.categorias import actualizar_categoria as actualizar_categoria_db
+from backend.database.categorias import eliminar_categoria as eliminar_categoria_db
 
 
 router = APIRouter()
