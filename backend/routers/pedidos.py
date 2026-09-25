@@ -2,8 +2,11 @@
 # PEDIDO
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.pedidos import obtener_pedidos as obtener_pedidos_db
 from backend.database.pedidos import obtener_pedido as obtener_pedido_db
@@ -25,13 +28,13 @@ class Pedido(BaseModel):
 
 
 @router.get("/pedidos")
-def obtener_pedidos():
-    return obtener_pedidos_db()
+def obtener_pedidos(db: Session = Depends(get_db)):
+    return obtener_pedidos_db(db)
 
 
 @router.get("/pedidos/{id}")
-def obtener_pedido(id: int):
-    pedido = obtener_pedido_db(id)
+def obtener_pedido(id: int, db: Session = Depends(get_db)):
+    pedido = obtener_pedido_db(id, db)
 
     if pedido is None:
         raise HTTPException(
@@ -43,8 +46,8 @@ def obtener_pedido(id: int):
 
 
 @router.post("/pedidos")
-def crear_pedido(pedido: Pedido):
-    resultado = crear_pedido_db(pedido)
+def crear_pedido(pedido: Pedido, db: Session = Depends(get_db)):
+    resultado = crear_pedido_db(pedido, db)
 
     if resultado is False:
         raise HTTPException(
@@ -56,8 +59,8 @@ def crear_pedido(pedido: Pedido):
 
 
 @router.put("/pedidos/{id}")
-def actualizar_pedido(id: int, pedido: Pedido):
-    resultado = actualizar_pedido_db(id, pedido)
+def actualizar_pedido(id: int, pedido: Pedido, db: Session = Depends(get_db)):
+    resultado = actualizar_pedido_db(id, pedido, db)
 
     if resultado is False:
         raise HTTPException(
@@ -69,8 +72,8 @@ def actualizar_pedido(id: int, pedido: Pedido):
 
 
 @router.delete("/pedidos/{id}")
-def eliminar_pedido(id: int):
-    resultado = eliminar_pedido_db(id)
+def eliminar_pedido(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_pedido_db(id, db)
 
     if resultado is False:
         raise HTTPException(

@@ -2,43 +2,30 @@ from datetime import date
 
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Pedido
 
 
-def obtener_pedidos():
-    session = SessionLocal()
+def obtener_pedidos(session):
+    consulta = select(Pedido)
 
-    try:
-        consulta = select(Pedido)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_pedido(id_pedido):
-    session = SessionLocal()
 
-    try:
-        consulta = select(Pedido).where(
-            Pedido.id_pedido == id_pedido
-        )
+def obtener_pedido(id_pedido, session):
+    consulta = select(Pedido).where(
+        Pedido.id_pedido == id_pedido
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_pedido(pedido):
-    session = SessionLocal()
 
+def crear_pedido(pedido, session):
     try:
         nuevo_pedido = Pedido(
             id_cliente=pedido.id_cliente,
@@ -58,13 +45,9 @@ def crear_pedido(pedido):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_pedido(id_pedido, pedido):
-    session = SessionLocal()
-
+def actualizar_pedido(id_pedido, pedido, session):
     try:
         consulta = select(Pedido).where(
             Pedido.id_pedido == id_pedido
@@ -94,13 +77,9 @@ def actualizar_pedido(id_pedido, pedido):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_pedido(id_pedido):
-    session = SessionLocal()
-
+def eliminar_pedido(id_pedido, session):
     try:
         consulta = select(Pedido).where(
             Pedido.id_pedido == id_pedido
@@ -121,6 +100,3 @@ def eliminar_pedido(id_pedido):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

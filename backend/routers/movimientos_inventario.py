@@ -2,8 +2,11 @@
 # MOVIMIENTO_INVENTARIO
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.movimientos_inventario import obtener_movimientos_inventario as obtener_movimientos_inventario_db
 from backend.database.movimientos_inventario import obtener_movimiento_inventario as obtener_movimiento_inventario_db
@@ -24,13 +27,13 @@ class MovimientoInventario(BaseModel):
 
 
 @router.get("/movimientos-inventario")
-def obtener_movimientos_inventario():
-    return obtener_movimientos_inventario_db()
+def obtener_movimientos_inventario(db: Session = Depends(get_db)):
+    return obtener_movimientos_inventario_db(db)
 
 
 @router.get("/movimientos-inventario/{id}")
-def obtener_movimiento_inventario(id: int):
-    movimiento = obtener_movimiento_inventario_db(id)
+def obtener_movimiento_inventario(id: int, db: Session = Depends(get_db)):
+    movimiento = obtener_movimiento_inventario_db(id, db)
 
     if movimiento is None:
         raise HTTPException(
@@ -42,8 +45,8 @@ def obtener_movimiento_inventario(id: int):
 
 
 @router.post("/movimientos-inventario")
-def crear_movimiento_inventario(movimiento: MovimientoInventario):
-    resultado = crear_movimiento_inventario_db(movimiento)
+def crear_movimiento_inventario(movimiento: MovimientoInventario, db: Session = Depends(get_db)):
+    resultado = crear_movimiento_inventario_db(movimiento, db)
 
     if resultado is False:
         raise HTTPException(
@@ -57,11 +60,13 @@ def crear_movimiento_inventario(movimiento: MovimientoInventario):
 @router.put("/movimientos-inventario/{id}")
 def actualizar_movimiento_inventario(
     id: int,
-    movimiento: MovimientoInventario
+    movimiento: MovimientoInventario,
+    db: Session = Depends(get_db)
 ):
     resultado = actualizar_movimiento_inventario_db(
         id,
-        movimiento
+        movimiento,
+        db
     )
 
     if resultado is False:
@@ -74,8 +79,8 @@ def actualizar_movimiento_inventario(
 
 
 @router.delete("/movimientos-inventario/{id}")
-def eliminar_movimiento_inventario(id: int):
-    resultado = eliminar_movimiento_inventario_db(id)
+def eliminar_movimiento_inventario(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_movimiento_inventario_db(id, db)
 
     if resultado is False:
         raise HTTPException(

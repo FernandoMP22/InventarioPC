@@ -2,43 +2,30 @@ from datetime import date
 
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import MovimientoInventario
 
 
-def obtener_movimientos_inventario():
-    session = SessionLocal()
+def obtener_movimientos_inventario(session):
+    consulta = select(MovimientoInventario)
 
-    try:
-        consulta = select(MovimientoInventario)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_movimiento_inventario(id_movimiento):
-    session = SessionLocal()
 
-    try:
-        consulta = select(MovimientoInventario).where(
-            MovimientoInventario.id_movimiento == id_movimiento
-        )
+def obtener_movimiento_inventario(id_movimiento, session):
+    consulta = select(MovimientoInventario).where(
+        MovimientoInventario.id_movimiento == id_movimiento
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_movimiento_inventario(movimiento):
-    session = SessionLocal()
 
+def crear_movimiento_inventario(movimiento, session):
     try:
         nuevo_movimiento = MovimientoInventario(
             id_producto=movimiento.id_producto,
@@ -57,16 +44,13 @@ def crear_movimiento_inventario(movimiento):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
 def actualizar_movimiento_inventario(
     id_movimiento,
-    movimiento
+    movimiento,
+    session
 ):
-    session = SessionLocal()
-
     try:
         consulta = select(MovimientoInventario).where(
             MovimientoInventario.id_movimiento == id_movimiento
@@ -95,13 +79,9 @@ def actualizar_movimiento_inventario(
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_movimiento_inventario(id_movimiento):
-    session = SessionLocal()
-
+def eliminar_movimiento_inventario(id_movimiento, session):
     try:
         consulta = select(MovimientoInventario).where(
             MovimientoInventario.id_movimiento == id_movimiento
@@ -122,6 +102,3 @@ def eliminar_movimiento_inventario(id_movimiento):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

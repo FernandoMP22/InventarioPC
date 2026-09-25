@@ -1,42 +1,29 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Cliente
 
 
-def obtener_clientes():
-    session = SessionLocal()
+def obtener_clientes(session):
+    consulta = select(Cliente)
 
-    try:
-        consulta = select(Cliente)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_cliente(id_cliente):
-    session = SessionLocal()
 
-    try:
-        consulta = select(Cliente).where(
-            Cliente.id_cliente == id_cliente
-        )
+def obtener_cliente(id_cliente, session):
+    consulta = select(Cliente).where(
+        Cliente.id_cliente == id_cliente
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_cliente(cliente):
-    session = SessionLocal()
 
+def crear_cliente(cliente, session):
     try:
         nuevo_cliente = Cliente(
             nombre=cliente.nombre,
@@ -54,13 +41,9 @@ def crear_cliente(cliente):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_cliente(id_cliente, cliente):
-    session = SessionLocal()
-
+def actualizar_cliente(id_cliente, cliente, session):
     try:
         consulta = select(Cliente).where(
             Cliente.id_cliente == id_cliente
@@ -86,13 +69,9 @@ def actualizar_cliente(id_cliente, cliente):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_cliente(id_cliente):
-    session = SessionLocal()
-
+def eliminar_cliente(id_cliente, session):
     try:
         consulta = select(Cliente).where(
             Cliente.id_cliente == id_cliente
@@ -113,6 +92,3 @@ def eliminar_cliente(id_cliente):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

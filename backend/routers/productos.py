@@ -2,8 +2,11 @@
 # PRODUCTO
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.productos import obtener_productos as obtener_productos_db
 from backend.database.productos import obtener_producto as obtener_producto_db
@@ -25,8 +28,8 @@ class Producto(BaseModel):
     id_categoria: int
 
 @router.get("/productos")
-def obtener_productos():
-    productos = obtener_productos_db()
+def obtener_productos(db: Session = Depends(get_db)):
+    productos = obtener_productos_db(db)
 
     if productos is None:
         raise HTTPException(
@@ -38,8 +41,8 @@ def obtener_productos():
 
 
 @router.get("/productos/{id_producto}")
-def obtener_producto(id_producto: int):
-    producto = obtener_producto_db(id_producto)
+def obtener_producto(id_producto: int, db: Session = Depends(get_db)):
+    producto = obtener_producto_db(id_producto, db)
 
     if producto is None:
         raise HTTPException(
@@ -51,8 +54,8 @@ def obtener_producto(id_producto: int):
 
 
 @router.post("/productos")
-def crear_producto(producto: Producto):
-    resultado = crear_producto_db(producto)
+def crear_producto(producto: Producto, db: Session = Depends(get_db)):
+    resultado = crear_producto_db(producto, db)
 
     if resultado is False:
         raise HTTPException(
@@ -64,8 +67,12 @@ def crear_producto(producto: Producto):
 
 
 @router.put("/productos/{id_producto}")
-def actualizar_producto(id_producto: int, producto: Producto):
-    resultado = actualizar_producto_db(id_producto, producto)
+def actualizar_producto(
+    id_producto: int,
+    producto: Producto,
+    db: Session = Depends(get_db)
+):
+    resultado = actualizar_producto_db(id_producto, producto, db)
 
     if resultado is False:
         raise HTTPException(
@@ -77,8 +84,8 @@ def actualizar_producto(id_producto: int, producto: Producto):
 
 
 @router.delete("/productos/{id_producto}")
-def eliminar_producto(id_producto: int):
-    resultado = eliminar_producto_db(id_producto)
+def eliminar_producto(id_producto: int, db: Session = Depends(get_db)):
+    resultado = eliminar_producto_db(id_producto, db)
 
     if resultado is False:
         raise HTTPException(

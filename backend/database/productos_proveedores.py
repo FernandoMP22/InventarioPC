@@ -1,43 +1,30 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import ProductoProveedor
 
 
-def obtener_productos_proveedores():
-    session = SessionLocal()
+def obtener_productos_proveedores(session):
+    consulta = select(ProductoProveedor)
 
-    try:
-        consulta = select(ProductoProveedor)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_producto_proveedor(id_producto, id_proveedor):
-    session = SessionLocal()
 
-    try:
-        consulta = select(ProductoProveedor).where(
-            ProductoProveedor.id_producto == id_producto,
-            ProductoProveedor.id_proveedor == id_proveedor
-        )
+def obtener_producto_proveedor(id_producto, id_proveedor, session):
+    consulta = select(ProductoProveedor).where(
+        ProductoProveedor.id_producto == id_producto,
+        ProductoProveedor.id_proveedor == id_proveedor
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_producto_proveedor(producto_proveedor):
-    session = SessionLocal()
 
+def crear_producto_proveedor(producto_proveedor, session):
     try:
         nueva_relacion = ProductoProveedor(
             id_producto=producto_proveedor.id_producto,
@@ -55,17 +42,14 @@ def crear_producto_proveedor(producto_proveedor):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
 def actualizar_producto_proveedor(
     id_producto,
     id_proveedor,
-    producto_proveedor
+    producto_proveedor,
+    session
 ):
-    session = SessionLocal()
-
     try:
         consulta = select(ProductoProveedor).where(
             ProductoProveedor.id_producto == id_producto,
@@ -95,13 +79,9 @@ def actualizar_producto_proveedor(
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_producto_proveedor(id_producto, id_proveedor):
-    session = SessionLocal()
-
+def eliminar_producto_proveedor(id_producto, id_proveedor, session):
     try:
         consulta = select(ProductoProveedor).where(
             ProductoProveedor.id_producto == id_producto,
@@ -123,6 +103,3 @@ def eliminar_producto_proveedor(id_producto, id_proveedor):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

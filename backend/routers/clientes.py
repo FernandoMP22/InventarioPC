@@ -2,8 +2,11 @@
 # CLIENTE
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.clientes import obtener_clientes as obtener_clientes_db
 from backend.database.clientes import obtener_cliente as obtener_cliente_db
@@ -23,13 +26,13 @@ class Cliente(BaseModel):
 
 
 @router.get("/clientes")
-def obtener_clientes():
-    return obtener_clientes_db()
+def obtener_clientes(db: Session = Depends(get_db)):
+    return obtener_clientes_db(db)
 
 
 @router.get("/clientes/{id}")
-def obtener_cliente(id: int):
-    cliente = obtener_cliente_db(id)
+def obtener_cliente(id: int, db: Session = Depends(get_db)):
+    cliente = obtener_cliente_db(id, db)
 
     if cliente is None:
         raise HTTPException(
@@ -41,8 +44,8 @@ def obtener_cliente(id: int):
 
 
 @router.post("/clientes")
-def crear_cliente(cliente: Cliente):
-    resultado = crear_cliente_db(cliente)
+def crear_cliente(cliente: Cliente, db: Session = Depends(get_db)):
+    resultado = crear_cliente_db(cliente, db)
 
     if resultado is False:
         raise HTTPException(
@@ -54,8 +57,8 @@ def crear_cliente(cliente: Cliente):
 
 
 @router.put("/clientes/{id}")
-def actualizar_cliente(id: int, cliente: Cliente):
-    resultado = actualizar_cliente_db(id, cliente)
+def actualizar_cliente(id: int, cliente: Cliente, db: Session = Depends(get_db)):
+    resultado = actualizar_cliente_db(id, cliente, db)
 
     if resultado is False:
         raise HTTPException(
@@ -67,8 +70,8 @@ def actualizar_cliente(id: int, cliente: Cliente):
 
 
 @router.delete("/clientes/{id}")
-def eliminar_cliente(id: int):
-    resultado = eliminar_cliente_db(id)
+def eliminar_cliente(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_cliente_db(id, db)
 
     if resultado is False:
         raise HTTPException(

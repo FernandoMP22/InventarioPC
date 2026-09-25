@@ -2,43 +2,30 @@ from datetime import date
 
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Devolucion
 
 
-def obtener_devoluciones():
-    session = SessionLocal()
+def obtener_devoluciones(session):
+    consulta = select(Devolucion)
 
-    try:
-        consulta = select(Devolucion)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_devolucion(id_devolucion):
-    session = SessionLocal()
 
-    try:
-        consulta = select(Devolucion).where(
-            Devolucion.id_devolucion == id_devolucion
-        )
+def obtener_devolucion(id_devolucion, session):
+    consulta = select(Devolucion).where(
+        Devolucion.id_devolucion == id_devolucion
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_devolucion(devolucion):
-    session = SessionLocal()
 
+def crear_devolucion(devolucion, session):
     try:
         nueva_devolucion = Devolucion(
             id_detalle=devolucion.id_detalle,
@@ -59,13 +46,9 @@ def crear_devolucion(devolucion):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_devolucion(id_devolucion, devolucion):
-    session = SessionLocal()
-
+def actualizar_devolucion(id_devolucion, devolucion, session):
     try:
         consulta = select(Devolucion).where(
             Devolucion.id_devolucion == id_devolucion
@@ -94,13 +77,9 @@ def actualizar_devolucion(id_devolucion, devolucion):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_devolucion(id_devolucion):
-    session = SessionLocal()
-
+def eliminar_devolucion(id_devolucion, session):
     try:
         consulta = select(Devolucion).where(
             Devolucion.id_devolucion == id_devolucion
@@ -121,6 +100,3 @@ def eliminar_devolucion(id_devolucion):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

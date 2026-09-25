@@ -2,8 +2,11 @@
 # CATEGORIA
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.categorias import obtener_categorias as obtener_categorias_db
 from backend.database.categorias import obtener_categoria as obtener_categoria_db
@@ -21,13 +24,13 @@ class Categoria(BaseModel):
 
 
 @router.get("/categorias")
-def obtener_categorias():
-    return obtener_categorias_db()
+def obtener_categorias(db: Session = Depends(get_db)):
+    return obtener_categorias_db(db)
 
 
 @router.get("/categorias/{id}")
-def obtener_categoria(id: int):
-    categoria = obtener_categoria_db(id)
+def obtener_categoria(id: int, db: Session = Depends(get_db)):
+    categoria = obtener_categoria_db(id, db)
 
     if categoria is None:
         raise HTTPException(
@@ -39,8 +42,8 @@ def obtener_categoria(id: int):
 
 
 @router.post("/categorias")
-def crear_categoria(categoria: Categoria):
-    resultado = crear_categoria_db(categoria)
+def crear_categoria(categoria: Categoria, db: Session = Depends(get_db)):
+    resultado = crear_categoria_db(categoria, db)
 
     if resultado is False:
         raise HTTPException(
@@ -52,8 +55,8 @@ def crear_categoria(categoria: Categoria):
 
 
 @router.put("/categorias/{id}")
-def actualizar_categoria(id: int, categoria: Categoria):
-    resultado = actualizar_categoria_db(id, categoria)
+def actualizar_categoria(id: int, categoria: Categoria, db: Session = Depends(get_db)):
+    resultado = actualizar_categoria_db(id, categoria, db)
 
     if resultado is False:
         raise HTTPException(
@@ -65,8 +68,8 @@ def actualizar_categoria(id: int, categoria: Categoria):
 
 
 @router.delete("/categorias/{id}")
-def eliminar_categoria(id: int):
-    resultado = eliminar_categoria_db(id)
+def eliminar_categoria(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_categoria_db(id, db)
 
     if resultado is False:
         raise HTTPException(

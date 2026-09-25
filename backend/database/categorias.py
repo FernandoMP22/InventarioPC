@@ -1,42 +1,29 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Categoria
 
 
-def obtener_categorias():
-    session = SessionLocal()
+def obtener_categorias(session):
+    consulta = select(Categoria)
 
-    try:
-        consulta = select(Categoria)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_categoria(id_categoria):
-    session = SessionLocal()
 
-    try:
-        consulta = select(Categoria).where(
-            Categoria.id_categoria == id_categoria
-        )
+def obtener_categoria(id_categoria, session):
+    consulta = select(Categoria).where(
+        Categoria.id_categoria == id_categoria
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_categoria(categoria):
-    session = SessionLocal()
 
+def crear_categoria(categoria, session):
     try:
         nueva_categoria = Categoria(
             nombre=categoria.nombre,
@@ -52,13 +39,9 @@ def crear_categoria(categoria):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_categoria(id_categoria, categoria):
-    session = SessionLocal()
-
+def actualizar_categoria(id_categoria, categoria, session):
     try:
         consulta = select(Categoria).where(
             Categoria.id_categoria == id_categoria
@@ -82,13 +65,9 @@ def actualizar_categoria(id_categoria, categoria):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_categoria(id_categoria):
-    session = SessionLocal()
-
+def eliminar_categoria(id_categoria, session):
     try:
         consulta = select(Categoria).where(
             Categoria.id_categoria == id_categoria
@@ -109,6 +88,3 @@ def eliminar_categoria(id_categoria):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

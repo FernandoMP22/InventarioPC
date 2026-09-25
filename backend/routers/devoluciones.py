@@ -2,8 +2,11 @@
 # DEVOLUCION
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.devoluciones import obtener_devoluciones as obtener_devoluciones_db
 from backend.database.devoluciones import obtener_devolucion as obtener_devolucion_db
@@ -24,13 +27,13 @@ class Devolucion(BaseModel):
 
 
 @router.get("/devoluciones")
-def obtener_devoluciones():
-    return obtener_devoluciones_db()
+def obtener_devoluciones(db: Session = Depends(get_db)):
+    return obtener_devoluciones_db(db)
 
 
 @router.get("/devoluciones/{id}")
-def obtener_devolucion(id: int):
-    devolucion = obtener_devolucion_db(id)
+def obtener_devolucion(id: int, db: Session = Depends(get_db)):
+    devolucion = obtener_devolucion_db(id, db)
 
     if devolucion is None:
         raise HTTPException(
@@ -42,8 +45,8 @@ def obtener_devolucion(id: int):
 
 
 @router.post("/devoluciones")
-def crear_devolucion(devolucion: Devolucion):
-    resultado = crear_devolucion_db(devolucion)
+def crear_devolucion(devolucion: Devolucion, db: Session = Depends(get_db)):
+    resultado = crear_devolucion_db(devolucion, db)
 
     if resultado is False:
         raise HTTPException(
@@ -55,8 +58,8 @@ def crear_devolucion(devolucion: Devolucion):
 
 
 @router.put("/devoluciones/{id}")
-def actualizar_devolucion(id: int, devolucion: Devolucion):
-    resultado = actualizar_devolucion_db(id, devolucion)
+def actualizar_devolucion(id: int, devolucion: Devolucion, db: Session = Depends(get_db)):
+    resultado = actualizar_devolucion_db(id, devolucion, db)
 
     if resultado is False:
         raise HTTPException(
@@ -68,8 +71,8 @@ def actualizar_devolucion(id: int, devolucion: Devolucion):
 
 
 @router.delete("/devoluciones/{id}")
-def eliminar_devolucion(id: int):
-    resultado = eliminar_devolucion_db(id)
+def eliminar_devolucion(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_devolucion_db(id, db)
 
     if resultado is False:
         raise HTTPException(

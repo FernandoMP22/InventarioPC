@@ -1,46 +1,31 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Producto
 
 
-def obtener_productos():
-    session = SessionLocal()
+def obtener_productos(session):
+    consulta = select(Producto)
 
-    try:
-        consulta = select(Producto)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
+    productos = resultado.scalars().all()
 
-        productos = resultado.scalars().all()
-
-        return productos
-
-    finally:
-        session.close()
+    return productos
 
 
-def obtener_producto(id_producto):
-    session = SessionLocal()
+def obtener_producto(id_producto, session):
+    consulta = select(Producto).where(
+        Producto.id_producto == id_producto
+    )
 
-    try:
-        consulta = select(Producto).where(
-            Producto.id_producto == id_producto
-        )
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
+    producto = resultado.scalars().first()
 
-        producto = resultado.scalars().first()
-
-        return producto
-
-    finally:
-        session.close()
+    return producto
 
 
-def crear_producto(producto):
-    session = SessionLocal()
-
+def crear_producto(producto, session):
     try:
         nuevo_producto = Producto(
             nombre=producto.nombre,
@@ -62,13 +47,8 @@ def crear_producto(producto):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
-
-def actualizar_producto(id_producto, producto):
-    session = SessionLocal()
-
+def actualizar_producto(id_producto, producto, session):
     try:
         consulta = select(Producto).where(
             Producto.id_producto == id_producto
@@ -96,13 +76,8 @@ def actualizar_producto(id_producto, producto):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
-
-def eliminar_producto(id_producto):
-    session = SessionLocal()
-
+def eliminar_producto(id_producto, session):
     try:
         consulta = select(Producto).where(
             Producto.id_producto == id_producto
@@ -121,6 +96,3 @@ def eliminar_producto(id_producto):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

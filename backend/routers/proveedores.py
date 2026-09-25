@@ -2,8 +2,11 @@
 # PROVEEDOR
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.proveedores import obtener_proveedores as obtener_proveedores_db
 from backend.database.proveedores import obtener_proveedor as obtener_proveedor_db
@@ -23,13 +26,13 @@ class Proveedor(BaseModel):
 
 
 @router.get("/proveedores")
-def obtener_proveedores():
-    return obtener_proveedores_db()
+def obtener_proveedores(db: Session = Depends(get_db)):
+    return obtener_proveedores_db(db)
 
 
 @router.get("/proveedores/{id}")
-def obtener_proveedor(id: int):
-    proveedor = obtener_proveedor_db(id)
+def obtener_proveedor(id: int, db: Session = Depends(get_db)):
+    proveedor = obtener_proveedor_db(id, db)
 
     if proveedor is None:
         raise HTTPException(
@@ -41,8 +44,8 @@ def obtener_proveedor(id: int):
 
 
 @router.post("/proveedores")
-def crear_proveedor(proveedor: Proveedor):
-    resultado = crear_proveedor_db(proveedor)
+def crear_proveedor(proveedor: Proveedor, db: Session = Depends(get_db)):
+    resultado = crear_proveedor_db(proveedor, db)
 
     if resultado is False:
         raise HTTPException(
@@ -54,8 +57,8 @@ def crear_proveedor(proveedor: Proveedor):
 
 
 @router.put("/proveedores/{id}")
-def actualizar_proveedor(id: int, proveedor: Proveedor):
-    resultado = actualizar_proveedor_db(id, proveedor)
+def actualizar_proveedor(id: int, proveedor: Proveedor, db: Session = Depends(get_db)):
+    resultado = actualizar_proveedor_db(id, proveedor, db)
 
     if resultado is False:
         raise HTTPException(
@@ -67,8 +70,8 @@ def actualizar_proveedor(id: int, proveedor: Proveedor):
 
 
 @router.delete("/proveedores/{id}")
-def eliminar_proveedor(id: int):
-    resultado = eliminar_proveedor_db(id)
+def eliminar_proveedor(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_proveedor_db(id, db)
 
     if resultado is False:
         raise HTTPException(

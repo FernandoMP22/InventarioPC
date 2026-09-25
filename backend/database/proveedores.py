@@ -1,42 +1,29 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import Proveedor
 
 
-def obtener_proveedores():
-    session = SessionLocal()
+def obtener_proveedores(session):
+    consulta = select(Proveedor)
 
-    try:
-        consulta = select(Proveedor)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_proveedor(id_proveedor):
-    session = SessionLocal()
 
-    try:
-        consulta = select(Proveedor).where(
-            Proveedor.id_proveedor == id_proveedor
-        )
+def obtener_proveedor(id_proveedor, session):
+    consulta = select(Proveedor).where(
+        Proveedor.id_proveedor == id_proveedor
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_proveedor(proveedor):
-    session = SessionLocal()
 
+def crear_proveedor(proveedor, session):
     try:
         nuevo_proveedor = Proveedor(
             nombre=proveedor.nombre,
@@ -54,13 +41,9 @@ def crear_proveedor(proveedor):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_proveedor(id_proveedor, proveedor):
-    session = SessionLocal()
-
+def actualizar_proveedor(id_proveedor, proveedor, session):
     try:
         consulta = select(Proveedor).where(
             Proveedor.id_proveedor == id_proveedor
@@ -86,13 +69,9 @@ def actualizar_proveedor(id_proveedor, proveedor):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_proveedor(id_proveedor):
-    session = SessionLocal()
-
+def eliminar_proveedor(id_proveedor, session):
     try:
         consulta = select(Proveedor).where(
             Proveedor.id_proveedor == id_proveedor
@@ -113,6 +92,3 @@ def eliminar_proveedor(id_proveedor):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

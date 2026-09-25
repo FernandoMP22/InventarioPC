@@ -1,42 +1,29 @@
 from sqlalchemy import select
 
-from backend.database.session import SessionLocal
 from backend.models import DetallePedido
 
 
-def obtener_detalles_pedido():
-    session = SessionLocal()
+def obtener_detalles_pedido(session):
+    consulta = select(DetallePedido)
 
-    try:
-        consulta = select(DetallePedido)
+    resultado = session.execute(consulta)
 
-        resultado = session.execute(consulta)
-
-        return resultado.scalars().all()
-
-    finally:
-        session.close()
+    return resultado.scalars().all()
 
 
-def obtener_detalle_pedido(id_detalle):
-    session = SessionLocal()
 
-    try:
-        consulta = select(DetallePedido).where(
-            DetallePedido.id_detalle == id_detalle
-        )
+def obtener_detalle_pedido(id_detalle, session):
+    consulta = select(DetallePedido).where(
+        DetallePedido.id_detalle == id_detalle
+    )
 
-        resultado = session.execute(consulta)
+    resultado = session.execute(consulta)
 
-        return resultado.scalars().first()
-
-    finally:
-        session.close()
+    return resultado.scalars().first()
 
 
-def crear_detalle_pedido(detalle):
-    session = SessionLocal()
 
+def crear_detalle_pedido(detalle, session):
     try:
         nuevo_detalle = DetallePedido(
             id_pedido=detalle.id_pedido,
@@ -55,13 +42,9 @@ def crear_detalle_pedido(detalle):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def actualizar_detalle_pedido(id_detalle, detalle):
-    session = SessionLocal()
-
+def actualizar_detalle_pedido(id_detalle, detalle, session):
     try:
         consulta = select(DetallePedido).where(
             DetallePedido.id_detalle == id_detalle
@@ -88,13 +71,9 @@ def actualizar_detalle_pedido(id_detalle, detalle):
         session.rollback()
         return False
 
-    finally:
-        session.close()
 
 
-def eliminar_detalle_pedido(id_detalle):
-    session = SessionLocal()
-
+def eliminar_detalle_pedido(id_detalle, session):
     try:
         consulta = select(DetallePedido).where(
             DetallePedido.id_detalle == id_detalle
@@ -115,6 +94,3 @@ def eliminar_detalle_pedido(id_detalle):
     except Exception:
         session.rollback()
         return False
-
-    finally:
-        session.close()

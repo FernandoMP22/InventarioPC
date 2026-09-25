@@ -2,8 +2,11 @@
 # DETALLE_PEDIDO
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.detalles_pedido import obtener_detalles_pedido as obtener_detalles_pedido_db
 from backend.database.detalles_pedido import obtener_detalle_pedido as obtener_detalle_pedido_db
@@ -24,13 +27,13 @@ class DetallePedido(BaseModel):
 
 
 @router.get("/detalles-pedido")
-def obtener_detalles_pedido():
-    return obtener_detalles_pedido_db()
+def obtener_detalles_pedido(db: Session = Depends(get_db)):
+    return obtener_detalles_pedido_db(db)
 
 
 @router.get("/detalles-pedido/{id}")
-def obtener_detalle_pedido(id: int):
-    detalle = obtener_detalle_pedido_db(id)
+def obtener_detalle_pedido(id: int, db: Session = Depends(get_db)):
+    detalle = obtener_detalle_pedido_db(id, db)
 
     if detalle is None:
         raise HTTPException(
@@ -42,8 +45,8 @@ def obtener_detalle_pedido(id: int):
 
 
 @router.post("/detalles-pedido")
-def crear_detalle_pedido(detalle: DetallePedido):
-    resultado = crear_detalle_pedido_db(detalle)
+def crear_detalle_pedido(detalle: DetallePedido, db: Session = Depends(get_db)):
+    resultado = crear_detalle_pedido_db(detalle, db)
 
     if resultado is False:
         raise HTTPException(
@@ -55,8 +58,8 @@ def crear_detalle_pedido(detalle: DetallePedido):
 
 
 @router.put("/detalles-pedido/{id}")
-def actualizar_detalle_pedido(id: int, detalle: DetallePedido):
-    resultado = actualizar_detalle_pedido_db(id, detalle)
+def actualizar_detalle_pedido(id: int, detalle: DetallePedido, db: Session = Depends(get_db)):
+    resultado = actualizar_detalle_pedido_db(id, detalle, db)
 
     if resultado is False:
         raise HTTPException(
@@ -68,8 +71,8 @@ def actualizar_detalle_pedido(id: int, detalle: DetallePedido):
 
 
 @router.delete("/detalles-pedido/{id}")
-def eliminar_detalle_pedido(id: int):
-    resultado = eliminar_detalle_pedido_db(id)
+def eliminar_detalle_pedido(id: int, db: Session = Depends(get_db)):
+    resultado = eliminar_detalle_pedido_db(id, db)
 
     if resultado is False:
         raise HTTPException(

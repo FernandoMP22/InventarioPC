@@ -2,8 +2,11 @@
 # PRODUCTO_PROVEEDOR
 # ==========================================
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from backend.database.session import get_db
 
 from backend.database.productos_proveedores import obtener_productos_proveedores as obtener_productos_proveedores_db
 from backend.database.productos_proveedores import obtener_producto_proveedor as obtener_producto_proveedor_db
@@ -23,15 +26,16 @@ class ProductoProveedor(BaseModel):
 
 
 @router.get("/productos-proveedores")
-def obtener_productos_proveedores():
-    return obtener_productos_proveedores_db()
+def obtener_productos_proveedores(db: Session = Depends(get_db)):
+    return obtener_productos_proveedores_db(db)
 
 
 @router.get("/productos-proveedores/{id_producto}/{id_proveedor}")
-def obtener_producto_proveedor(id_producto: int, id_proveedor: int):
+def obtener_producto_proveedor(id_producto: int, id_proveedor: int, db: Session = Depends(get_db)):
     producto_proveedor = obtener_producto_proveedor_db(
         id_producto,
-        id_proveedor
+        id_proveedor,
+        db
     )
 
     if producto_proveedor is None:
@@ -44,8 +48,8 @@ def obtener_producto_proveedor(id_producto: int, id_proveedor: int):
 
 
 @router.post("/productos-proveedores")
-def crear_producto_proveedor(producto_proveedor: ProductoProveedor):
-    resultado = crear_producto_proveedor_db(producto_proveedor)
+def crear_producto_proveedor(producto_proveedor: ProductoProveedor, db: Session = Depends(get_db)):
+    resultado = crear_producto_proveedor_db(producto_proveedor, db)
 
     if resultado is False:
         raise HTTPException(
@@ -60,12 +64,14 @@ def crear_producto_proveedor(producto_proveedor: ProductoProveedor):
 def actualizar_producto_proveedor(
     id_producto: int,
     id_proveedor: int,
-    producto_proveedor: ProductoProveedor
+    producto_proveedor: ProductoProveedor,
+    db: Session = Depends(get_db)
 ):
     resultado = actualizar_producto_proveedor_db(
         id_producto,
         id_proveedor,
-        producto_proveedor
+        producto_proveedor,
+        db
     )
 
     if resultado is False:
@@ -78,10 +84,11 @@ def actualizar_producto_proveedor(
 
 
 @router.delete("/productos-proveedores/{id_producto}/{id_proveedor}")
-def eliminar_producto_proveedor(id_producto: int, id_proveedor: int):
+def eliminar_producto_proveedor(id_producto: int, id_proveedor: int, db: Session = Depends(get_db)):
     resultado = eliminar_producto_proveedor_db(
         id_producto,
-        id_proveedor
+        id_proveedor,
+        db
     )
 
     if resultado is False:
